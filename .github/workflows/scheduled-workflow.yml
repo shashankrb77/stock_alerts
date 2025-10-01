@@ -2,7 +2,9 @@ name: Scheduled Workflow
 
 on:
   schedule:
-    - cron: "30 12 * * *"  # Every day at 6 PM IST
+    - cron: "30 12 * * *"  # 6 PM IST
+  workflow_dispatch:       # <-- this is needed for manual runs
+
 
 jobs:
   build:
