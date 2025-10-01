@@ -1,0 +1,8 @@
+requests
+beautifulsoup4
+pandas
+lxml
+html5lib
+selenium
+webdriver-manager
+python-dotenv
