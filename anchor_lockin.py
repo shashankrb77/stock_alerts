@@ -13,7 +13,7 @@ def filter_lockin_within_days(df, lockin_period, days):
             lockin_col = col
             break
     if lockin_col:
-        filtered_df = df[df[lockin_col].notnull() & (df[lockin_col] >= today) & (df[lockin_col] <= in_days)]
+        filtered_df = df[df[lockin_col].notnull() & (df[lockin_col] >= today - pd.Timedelta(days=1)) & (df[lockin_col] <= in_days)]
         return filtered_df
     else:
         return pd.DataFrame()
