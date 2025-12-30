@@ -67,28 +67,53 @@ def download_csv_with_year_filter(url, year):
     try:
         driver.get(url)
 
+        # Wait for page to fully load
+        time.sleep(3)
+
         # Use the provided year
         year_text = f"Year {year}"
 
         # Wait for and click on dropdown with current year text
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 20)
 
-        # Try to find dropdown by text content (could be a select element, button, or div)
-        year_element = wait.until(
-            EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(), '{year_text}')]"))
-        )
-        year_element.click()
-        print(f"Clicked on element containing: {year_text}")
+        # Retry logic for stale element reference
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Try to find dropdown by text content (could be a select element, button, or div)
+                year_element = wait.until(
+                    EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(), '{year_text}')]"))
+                )
+                time.sleep(1)  # Small wait before clicking
+                year_element.click()
+                print(f"Clicked on element containing: {year_text}")
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"Retry {attempt + 1}/{max_retries} for year element due to: {str(e)}")
+                    time.sleep(2)
+                else:
+                    raise
 
-        # Wait for 2 seconds
-        time.sleep(2)
+        # Wait for any page updates after clicking year
+        time.sleep(3)
 
-        # Find and click the Export to CSV button
-        export_button = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@title='Export to CSV']"))
-        )
-        export_button.click()
-        print("Clicked Export to CSV button")
+        # Find and click the Export to CSV button with retry logic
+        for attempt in range(max_retries):
+            try:
+                export_button = wait.until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[@title='Export to CSV']"))
+                )
+                time.sleep(1)  # Small wait before clicking
+                export_button.click()
+                print("Clicked Export to CSV button")
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"Retry {attempt + 1}/{max_retries} for export button due to: {str(e)}")
+                    time.sleep(2)
+                else:
+                    raise
 
         # Check if login popup appears
         print("Checking for login popup...")
@@ -103,21 +128,39 @@ def download_csv_with_year_filter(url, year):
             username_field.send_keys(anchor_email_id)
             print("Entered email")
 
-            password_field = driver.find_element(By.ID, "password")
+            password_field = wait.until(
+                EC.presence_of_element_located((By.ID, "password"))
+            )
             password_field.clear()
             password_field.send_keys(anchor_password)
             print("Entered password")
 
             # Click the Log in now button
-            login_button = driver.find_element(By.XPATH, "//button[@type='submit' and contains(text(), 'Log in now')]")
+            login_button = wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//button[@type='submit' and contains(text(), 'Log in now')]"))
+            )
             login_button.click()
             print("Clicked Log in now button")
         except Exception as login_error:
             print(f"✗ Login popup not found or error occurred: {str(login_error)}")
             print("Continuing without login...")
 
-        # Wait for download to complete
-        time.sleep(3)
+        # Wait for download to complete (longer wait for GitHub Actions)
+        print("Waiting for download to complete...")
+        download_wait_time = 15  # Maximum wait time in seconds
+        check_interval = 1  # Check every second
+        elapsed = 0
+
+        while elapsed < download_wait_time:
+            time.sleep(check_interval)
+            elapsed += check_interval
+            list_of_files = glob.glob(os.path.join(download_dir, '*.csv'))
+            if list_of_files:
+                print(f"Download detected after {elapsed} seconds")
+                time.sleep(1)  # Extra second to ensure file is complete
+                break
+            if elapsed % 3 == 0:  # Print progress every 3 seconds
+                print(f"Still waiting for download... ({elapsed}s)")
 
         # Find the most recently downloaded CSV file
         list_of_files = glob.glob(os.path.join(download_dir, '*.csv'))
