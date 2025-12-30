@@ -42,22 +42,22 @@ def anchor_lockin():
         csv_file_path_current = download_csv_with_year_filter(url, current_year)
         df_current = pd.read_csv(csv_file_path_current)
 
-        # print(f"\nCSV Content for {current_year}:")
-        # print(df_current.to_string())
+        print(f"\nCSV Content for {current_year}:")
+        print(df_current.to_string())
 
         # Download CSV for previous year
         print(f"\nDownloading data for {prev_year}...")
         csv_file_path_prev = download_csv_with_year_filter(url, prev_year)
         df_prev = pd.read_csv(csv_file_path_prev)
 
-        # print(f"\nCSV Content for {prev_year}:")
-        # print(df_prev.to_string())
+        print(f"\nCSV Content for {prev_year}:")
+        print(df_prev.to_string())
 
         # Combine both DataFrames
         df = pd.concat([df_current, df_prev], ignore_index=True)
 
-        # print(f"\nCombined CSV Content ({current_year} + {prev_year}):")
-        # print(df.to_string())
+        print(f"\nCombined CSV Content ({current_year} + {prev_year}):")
+        print(df.to_string())
 
         # Clean column headers to remove ▲▼ and other non-ASCII chars
         df.columns = [col.encode('ascii', 'ignore').decode('ascii') for col in df.columns]
