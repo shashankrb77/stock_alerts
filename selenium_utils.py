@@ -30,7 +30,7 @@ def fetch_single_table(url, wait_time, keyword):
         return company_tables[0]
     raise Exception(f"Expected exactly one table containing the word '{keyword}', but found {len(company_tables)}.")
 
-def download_csv_with_year_filter(url, year):
+def download_csv_with_year_filter(base_url, year):
 
     anchor_email_id = os.getenv("ANCHOR_EMAIL_ID")
     anchor_password = os.getenv("ANCHOR_PASSWORD")
@@ -65,48 +65,35 @@ def download_csv_with_year_filter(url, year):
     driver.execute("send_command", params)
 
     try:
-        driver.get(url)
+        # Directly navigate to URL with year parameter
+        url_with_year = f"{base_url}?year={year}"
+        driver.get(url_with_year)
+        print(f"Navigating to: {url_with_year}")
 
         # Wait for page to fully load
-        time.sleep(3)
-
-        # Use the provided year
-        year_text = f"Year {year}"
-
-        # Wait for and click on dropdown with current year text
         wait = WebDriverWait(driver, 20)
-
-        # Retry logic for stale element reference
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                # Try to find dropdown by text content (could be a select element, button, or div)
-                year_element = wait.until(
-                    EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(), '{year_text}')]"))
-                )
-                time.sleep(1)  # Small wait before clicking
-                year_element.click()
-                print(f"Clicked on element containing: {year_text}")
-                break
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    print(f"Retry {attempt + 1}/{max_retries} for year element due to: {str(e)}")
-                    time.sleep(2)
-                else:
-                    raise
-
-        # Wait for any page updates after clicking year
         time.sleep(3)
 
         # Find and click the Export to CSV button with retry logic
+        max_retries = 3
         for attempt in range(max_retries):
             try:
                 export_button = wait.until(
-                    EC.element_to_be_clickable((By.XPATH, "//button[@title='Export to CSV']"))
+                    EC.presence_of_element_located((By.XPATH, "//button[@title='Export to CSV']"))
                 )
-                time.sleep(1)  # Small wait before clicking
-                export_button.click()
-                print("Clicked Export to CSV button")
+
+                # Scroll the button into view
+                driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", export_button)
+                time.sleep(1)  # Wait for scroll to complete
+
+                # Try JavaScript click first (more reliable)
+                try:
+                    driver.execute_script("arguments[0].click();", export_button)
+                    print("Clicked Export to CSV button using JavaScript")
+                except:
+                    # Fallback to regular click
+                    export_button.click()
+                    print("Clicked Export to CSV button using regular click")
                 break
             except Exception as e:
                 if attempt < max_retries - 1:
