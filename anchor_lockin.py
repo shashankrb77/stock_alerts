@@ -31,7 +31,7 @@ def format_lockin_message(df_30, df_90):
 def anchor_lockin():
 
     try:
-        url = os.getenv("ANCHOR_URL")
+        base_url = os.getenv("ANCHOR_URL")
 
         # Get current year and previous year
         current_year = pd.Timestamp.today().year
@@ -39,7 +39,7 @@ def anchor_lockin():
 
         # Download CSV for current year
         print(f"\nDownloading data for {current_year}...")
-        csv_file_path_current = download_csv_with_year_filter(url, current_year)
+        csv_file_path_current = download_csv_with_year_filter(base_url, current_year)
         df_current = pd.read_csv(csv_file_path_current)
 
         print(f"\nCSV Content for {current_year}:")
@@ -47,7 +47,7 @@ def anchor_lockin():
 
         # Download CSV for previous year
         print(f"\nDownloading data for {prev_year}...")
-        csv_file_path_prev = download_csv_with_year_filter(url, prev_year)
+        csv_file_path_prev = download_csv_with_year_filter(base_url, prev_year)
         df_prev = pd.read_csv(csv_file_path_prev)
 
         print(f"\nCSV Content for {prev_year}:")
