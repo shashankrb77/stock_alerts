@@ -1,5 +1,4 @@
-from selenium_utils import fetch_single_table
-from io import StringIO
+from selenium_utils import fetch_single_table, download_csv_with_year_filter
 import os
 from telegram_utils import send_telegram_message
 import pandas as pd
@@ -33,8 +32,32 @@ def anchor_lockin():
 
     try:
         url = os.getenv("ANCHOR_URL")
-        company_table = fetch_single_table(url, wait_time=10, keyword="Company")
-        df = pd.read_html(StringIO(str(company_table)))[0]
+
+        # Get current year and previous year
+        current_year = pd.Timestamp.today().year
+        prev_year = current_year - 1
+
+        # Download CSV for current year
+        print(f"\nDownloading data for {current_year}...")
+        csv_file_path_current = download_csv_with_year_filter(url, current_year)
+        df_current = pd.read_csv(csv_file_path_current)
+
+        # print(f"\nCSV Content for {current_year}:")
+        # print(df_current.to_string())
+
+        # Download CSV for previous year
+        print(f"\nDownloading data for {prev_year}...")
+        csv_file_path_prev = download_csv_with_year_filter(url, prev_year)
+        df_prev = pd.read_csv(csv_file_path_prev)
+
+        # print(f"\nCSV Content for {prev_year}:")
+        # print(df_prev.to_string())
+
+        # Combine both DataFrames
+        df = pd.concat([df_current, df_prev], ignore_index=True)
+
+        # print(f"\nCombined CSV Content ({current_year} + {prev_year}):")
+        # print(df.to_string())
 
         # Clean column headers to remove ▲▼ and other non-ASCII chars
         df.columns = [col.encode('ascii', 'ignore').decode('ascii') for col in df.columns]
