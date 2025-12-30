@@ -17,6 +17,8 @@ jobs:
       ANCHOR_ALERT_CUT_OFF_DAYS: ${{ secrets.ANCHOR_ALERT_CUT_OFF_DAYS }}
       IPO_URL: ${{ secrets.IPO_URL }}
       IPO_ALERT_CUT_OFF_DAYS: ${{ secrets.IPO_ALERT_CUT_OFF_DAYS }}
+      ANCHOR_EMAIL_ID: ${{ secrets.ANCHOR_EMAIL_ID }}
+      ANCHOR_PASSWORD: ${{ secrets.ANCHOR_PASSWORD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
