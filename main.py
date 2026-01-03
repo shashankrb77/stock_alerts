@@ -7,3 +7,4 @@ if __name__ == "__main__":
     load_dotenv()
     anchor_lockin()
     ipo_close()
+    results()
